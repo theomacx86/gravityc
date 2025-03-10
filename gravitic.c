@@ -2,6 +2,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};  
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);    //Adjust viewport to fill the window again.
@@ -21,6 +27,9 @@ void renderLoop()
 
 int main()
 {
+    unsigned int VBO = 1;
+    GLFWwindow* window = NULL;
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);                  //Set OpenGL 3.3 as the target
@@ -29,7 +38,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            //macOS specific
     #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL); //Window creation
+    window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL); //Window creation
+
     if (window == NULL)
     {
         puts("Failed to create Window");
@@ -40,6 +50,11 @@ int main()
     glfwMakeContextCurrent(window);
     glViewport(0, 0, 800, 600);                                                 //Tell renderer the current size
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);          //Register window resizing callback function
+
+
+    glGenBuffers(1, &VBO);                                                      //Creates buffer
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);                                         //Bind buffer to GL_ARRAY_BUFFER (where vertices are stored.)
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);    
 
     while(!glfwWindowShouldClose(window))
     {
