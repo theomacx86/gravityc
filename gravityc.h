@@ -27,4 +27,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void renderLoop();
 
+void debugLogShader(unsigned int vertexShader);
+
 #endif
