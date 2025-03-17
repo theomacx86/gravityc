@@ -1,36 +1,20 @@
 #include "gravityc.h"
+#include "shader.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
-};  
+    0.5f,  0.5f, 0.0f,  // top right
+    0.5f, -0.5f, 0.0f,  // bottom right
+   -0.5f, -0.5f, 0.0f,  // bottom left
+   -0.5f,  0.5f, 0.0f   // top left 
+};
+unsigned int indices[] = {  // note that we start from 0!
+   0, 1, 3,  // first Triangle
+   1, 2, 3   // second Triangle
+};
 
-/*
-Vertex shared,
-this just tells OpenGL how/where to draw a single vertex
-OpenGL wants a vec4 output for this perVertex shader, tho we don't really need 4d
-Instead we send our vec3 vector and set 1 as the 4th dimension
-*/
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-/*
-Fragment shader
-expects a vec4 for rgba
-*/
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -69,11 +53,9 @@ int main()
 {
     unsigned int VBO;
     unsigned int VAO;
+    unsigned int EBO;   //Element buffer object
 
-    unsigned int vertexShader;
-    unsigned int fragmentShader;
-    unsigned int shaderProgram;
-
+    Shader_s * shader = NULL;
     GLFWwindow* window = NULL;
 
     glfwInit();
@@ -97,7 +79,13 @@ int main()
     glViewport(0, 0, 800, 600);                                                 //Tell renderer the current size
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);          //Register window resizing callback function
 
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    shader = shader_Init("shaders/vertex.glsl", "shaders/fragment.glsl");
+    if(shader == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    /*vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
     debugLogShader(vertexShader);
@@ -110,38 +98,44 @@ int main()
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
+    glLinkProgram(shaderProgram);*/
 
     glGenVertexArrays(1, &VAO);                                                     //Creates Vertex buffer array
     glGenBuffers(1, &VBO);                                                          //Creates buffer
+    glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);                                                         //Bind to current context
+
     glBindBuffer(GL_ARRAY_BUFFER, VBO);                                             //Bind buffer to GL_ARRAY_BUFFER (where vertices are stored.)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);     //Copy to GPU
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,  EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), indices, GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);  //Set attributes, layout=0, vec3, float, not normalized, 
                                                                                     // 3*size of floats, starts at address 0 in VBO.
-                                                                                                                                                                    
+                                                                                                                                                                 
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
     glBindVertexArray(0); 
+    
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);   //Process user inputs.
 
-        glUseProgram(shaderProgram);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        shader_Use(shader);
+        //glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
+        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();    
     }
 
     //cleanup
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader); 
 
     glfwTerminate();
     return 0;

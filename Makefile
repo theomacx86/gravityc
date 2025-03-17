@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS= -I$(shell brew --prefix)/include -L$(shell brew --prefix)/lib -lglfw -framework OpenGL
+CFLAGS= -I$(shell brew --prefix)/include -L$(shell brew --prefix)/lib -lglfw -framework OpenGL -I$(shell pwd)
 
 SOURCES:=$(wildcard *.c)
 OBJECTS:=$(patsubst %.c, %.o, $(SOURCES))
